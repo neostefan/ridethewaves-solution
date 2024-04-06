@@ -7,59 +7,57 @@ import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
 
-// async function getData(): Promise<Group[]> {
-//     return [
-//       {
-//         name: 'Ojota_Ogudu',
-//         designation: 'Public',
-//         members: '10k',
-//         posts_per_period: '3 per month'
-//       },
-//       {
-//         name: 'Ojota Ketu Ilaje',
-//         designation: 'Private',
-//         members: '11k',
-//         posts_per_period: '100 per month'
-//       },
-//       {
-//         name: 'Ojota_Ogudu',
-//         designation: 'Public',
-//         members: '9.5k',
-//         posts_per_period: '10 per day'
-//       }
-//     ]
-// }
-  
-
 const Home = () => {
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
-  const [searchTerm, setSearchTerm] = useState<string>('');
+  const mutation = useMutation({ mutationFn: () => getGroupsBySearchTerm(searchTerm) });
 
-  const mutation = useMutation({ mutationFn: () => getGroupsBySearchTerm(searchTerm)})
-  
+  console.log(mutation.error);
+  console.log(mutation.data);
 
-    console.log(mutation.error);
-    console.log(mutation.data);
+  const submitHandler = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    mutation.mutate();
+  };
 
-    const submitHandler = (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      mutation.mutate();
-    }
-
-    return (
-        <section className="container mx-auto py-10">
-            <div className="flex-col space-y-2">
-                <div className="flex w-full justify-center">
-                    <form className="flex w-6/12 space-x-2" onSubmit={submitHandler}>
-                        <Input className="focus-visible:ring-[2px]" type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.currentTarget.value)} placeholder="Search Term"/>
-                        <SearchButton />
-                    </form>
-                </div>
-                {mutation.data && mutation.data.data.length > 0 && <DataTable columns={columns} data={mutation.data.data} />}
-                {mutation.isPending && <div className=" text-center font-bold text-2xl">Loading...</div>}    
+  return (
+    <section className='container mx-auto py-10'>
+      <div className='flex-col space-y-2'>
+        <div className='flex w-full justify-center'>
+          <form
+            className='flex w-6/12 space-x-2'
+            onSubmit={submitHandler}
+          >
+            <Input
+              className='focus-visible:ring-[2px]'
+              type='text'
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.currentTarget.value)}
+              placeholder='Search Term'
+            />
+            <SearchButton />
+          </form>
         </div>
-      </section>
-    )
-}
+        {mutation.data && mutation.data.data.length > 0 && (
+          <DataTable
+            columns={columns}
+            data={mutation.data.data}
+          />
+        )}
+        {mutation.data && mutation.data.data.length === 0 && (
+          <div className='text-center font-bold text-xl'>
+            No results found that matches the defined query. Contact the developer!
+          </div>
+        )}
+        {mutation.isPending && <div className=' text-center font-bold text-2xl'>Loading...</div>}
+        {mutation.error && (
+          <div className='text-center text-red-700 font-bold bg-red-300 p-2 border-red-500 border-solid border-2 rounded-md mx-auto text-wrap w-64'>
+            {mutation.error.message}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+};
 
 export default Home;
